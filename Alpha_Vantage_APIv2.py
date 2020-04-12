@@ -3,8 +3,7 @@ import requests
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import datetime as dt 
+import matplotlib
 
 
 #Set API webpage URL
@@ -87,11 +86,24 @@ dailyStock_Table = pd.DataFrame(
     {"date":date_list, "open":open_list, "close": close_list,
     "high": high_list, "low": low_list, "volume":volume_list}
     ) 
-#convert date text to time
+#convert date text to time, numbers to numbers 
 dailyStock_Table['date'] = dailyStock_Table['date'].astype('datetime64[ns]')
-dailyStock_Table.dtypes
+
+#convert objects floats
+dailyStock_Table['high'] = [float(line) for line in dailyStock_Table['high']]
+dailyStock_Table['low'] = [float(line) for line in dailyStock_Table['low']]
+dailyStock_Table['volume'] = [float(line) for line in dailyStock_Table['volume']]
+
+print(dailyStock_Table.dtypes)
+
 #save PD as excel 
 dailyStock_Table.to_excel((ticker+"DailyPricing.xlsx"))
+
+
+fig, axs = plt.subplots(3,1)
+
+ax1 = plt.subplot2grid((3,1), (0,0), rowspan=2)
+
 
 x1 = dailyStock_Table['date']
 y1 = dailyStock_Table['high']
@@ -99,13 +111,28 @@ y1 = dailyStock_Table['high']
 x2 = dailyStock_Table['date']
 y2 = dailyStock_Table['low']
 
-plt.plot(x1, y1, label = 'High', color='g')
-plt.plot(x2, y2, label = 'Low', color='r')
+x3 = dailyStock_Table['date']
+y3 = dailyStock_Table['volume']
+
+ax1.plot(x1, y1, label = 'High', color='g')
+ax1.plot(x2, y2, label = 'Low', color='r')
 # plt.locator_params(axis='y', nbins='10')
-plt.gca().invert_yaxis()
 plt.xlabel('Date')
 plt.ylabel('Price')
+plt.legend()
 plt.title(Stockcode + ' Daily Pricing')
+
+ax2 = plt.subplot2grid((3,1), (2,0), rowspan=1)
+ax2.plot(x3, y3, label = 'Volume', color='b')
+plt.xlabel('Date')
+ax2.get_yaxis().set_major_formatter(
+    matplotlib.ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+plt.draw()
+plt.ylabel('Volume')
+plt.title(Stockcode + ' Daily Volume')
+plt.legend()
+
+plt.subplots_adjust(left=0.09, bottom=0.10, right=0.94, top=0.93, wspace=0.2, hspace=0.95)
 plt.show()
 
 
